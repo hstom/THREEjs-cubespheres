@@ -24,59 +24,77 @@
     var LEFT = false;
     var RIGHT = false;
 
-    var leftKeys = ["37", "65"];
-    var upKeys = ["38", "87"];
-    var rightKeys = ["39", "68"];
-    var downKeys = ["40", "83"];
+    var R;
+    var G;
+    var B;
 
-    var keyHandlerBlob = {};
+    var RKey = 82;
+    var GKey = 71;
+    var BKey = 66;
 
-    [
-        [(val) => LEFT = val, leftKeys],
-        [(val) => UP = val, upKeys],
-        [(val) => RIGHT = val, rightKeys],
-        [(val) => DOWN = val, downKeys]
-    ]
-        .forEach(
-            ([stateVarUpdater, keyCodes]) => {
-                keyCodes.forEach(
-                    keyCode => {
-                        keyHandlerBlob[keyCode] = {
-                            state: false,
-                            updater: () => {
-                                stateVarUpdater(keyCodes.map(kc => keyHandlerBlob[kc].state).reduce((acc, val) => acc || val, false));
+    { // Bind key handlers
+        var leftKeys = ["37", "65"];
+        var upKeys = ["38", "87"];
+        var rightKeys = ["39", "68"];
+        var downKeys = ["40", "83"];
+
+        var keyHandlerBlob = {};
+
+        [
+            [(val) => LEFT = val, leftKeys],
+            [(val) => UP = val, upKeys],
+            [(val) => RIGHT = val, rightKeys],
+            [(val) => DOWN = val, downKeys]
+        ]
+            .forEach(
+                ([stateVarUpdater, keyCodes]) => {
+                    keyCodes.forEach(
+                        keyCode => {
+                            keyHandlerBlob[keyCode] = {
+                                state: false,
+                                updater: () => {
+                                    stateVarUpdater(keyCodes.map(kc => keyHandlerBlob[kc].state).reduce((acc, val) => acc || val, false));
+                                }
                             }
                         }
+                    )
+                }
+            );
+
+        document.addEventListener('keydown', function (e) {
+            if(e.which === RKey && R){
+                R.visible = !R.visible;
+            } else if (e.which === GKey && G){
+                G.visible = !G.visible;
+            } else if (e.which === BKey && B){
+                B.visible = !B.visible;
+            }
+
+            Object.keys(keyHandlerBlob).some(
+                kc => {
+                    if ("" + e.which === kc) {
+                        keyHandlerBlob[kc].state = true;
+                        keyHandlerBlob[kc].updater();
+                        return true;
                     }
-                )
-            }
-        );
-
-    document.addEventListener('keydown', function(e) {
-        Object.keys(keyHandlerBlob).some(
-            kc => {
-                if(""+e.which === kc) {
-                    keyHandlerBlob[kc].state = true;
-                    keyHandlerBlob[kc].updater();
-                    return true;
+                    return false;
                 }
-                return false;
-            }
-        )
-    });
+            );
+        });
 
-    document.addEventListener('keyup', function(e) {
-        Object.keys(keyHandlerBlob).some(
-            kc => {
-                if(""+e.which === kc) {
-                    keyHandlerBlob[kc].state = false;
-                    keyHandlerBlob[kc].updater();
-                    return true;
+        document.addEventListener('keyup', function (e) {
+            Object.keys(keyHandlerBlob).some(
+                kc => {
+                    if ("" + e.which === kc) {
+                        keyHandlerBlob[kc].state = false;
+                        keyHandlerBlob[kc].updater();
+                        return true;
+                    }
+                    return false;
                 }
-                return false;
-            }
-        )
-    });
+            );
+        });
+    }
 
     var scene = new THREE.Scene();
 
@@ -231,11 +249,12 @@
             Object.assign(particleLight.position, position);
             scene.add(particleLight);
             particleLights.push(particleLight);
+            return particleLight;
         };
 
-        genAndAddParticleLight(0xff0000, { x: 5 }, 0xff4444);
-        genAndAddParticleLight(0x00ff00, { y: 5 }, 0x44ff44);
-        genAndAddParticleLight(0x0000ff, { z: 5 }, 0x4444ff);
+        R = genAndAddParticleLight(0xff0000, { x: 5 }, 0xff4444);
+        G = genAndAddParticleLight(0x00ff00, { y: 5 }, 0x44ff44);
+        B = genAndAddParticleLight(0x0000ff, { z: 5 }, 0x4444ff);
     }
 
     //sloopy quat
