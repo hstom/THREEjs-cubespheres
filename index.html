@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset=utf-8>
-    <title>PRESS [UP] OR [DOWN]</title>
+    <title>[LEFT] [UP] [RIGHT] [DOWN]</title>
     <style>
         body {
             margin: 0;
@@ -21,9 +21,17 @@
 <script>
     var UP = false;
     var DOWN = false;
+    var LEFT = false;
+    var RIGHT = false;
     document.addEventListener('keydown',  function (e) {
+        if(e.which === 37){
+            LEFT = true;
+        }
         if(e.which === 38){
             UP = true;
+        }
+        if(e.which === 39){
+            RIGHT = true;
         }
         if(e.which === 40) {
             DOWN = true;
@@ -31,8 +39,14 @@
     });
 
     document.addEventListener('keyup',  function (e) {
+        if(e.which === 37){
+            LEFT = false;
+        }
         if(e.which === 38){
             UP = false;
+        }
+        if(e.which === 39){
+            RIGHT = false;
         }
         if(e.which === 40) {
             DOWN = false;
@@ -209,14 +223,7 @@
     function animate() {
         requestAnimationFrame(animate);
 
-        // var dynamicQuaternion = new THREE.Quaternion();
-        // dynamicQuaternion.setFromAxisAngle(particleLights[0].position.clone().sub(rootCube.position), Math.PI / 1024).normalize();
 
-        // var quaternion = new THREE.Quaternion();
-        // quaternion.setFromAxisAngle(new THREE.Vector3(1, -1, 0), Math.PI / 512).normalize();
-        // rootCube.applyQuaternion(dynamicQuaternion);
-        // rootCube.applyQuaternion(quaternion);
-        // rootCube.applyQuaternion(lQuat);
 
         particleLights.map((pl) => pl.position.applyQuaternion(lQuat));
 
@@ -225,6 +232,20 @@
 
         // camera.position.applyQuaternion(cQuat);
         // camera.lookAt(rootCube.position);
+
+        if(LEFT ^ RIGHT) {
+
+            const sign = LEFT ? 1 : -1;
+
+            // var dynamicQuaternion = new THREE.Quaternion();
+            // dynamicQuaternion.setFromAxisAngle(particleLights[0].position.clone().sub(rootCube.position), sign * Math.PI / 1024).normalize();
+
+            var quaternion = new THREE.Quaternion();
+            quaternion.setFromAxisAngle(new THREE.Vector3(1, -1, 0), sign * Math.PI / 512).normalize();
+            // rootCube.applyQuaternion(dynamicQuaternion);
+            rootCube.applyQuaternion(quaternion);
+            // rootCube.applyQuaternion(lQuat);
+        }
 
         if(UP ^ DOWN) {
             // var scalarScalor = 1 + ((UP * .0001) - (DOWN * .0001));
