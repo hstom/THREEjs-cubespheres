@@ -2,15 +2,16 @@
 <html>
 <head>
     <meta charset=utf-8>
-    <title>My first three.js app</title>
+    <title>PRESS [UP] OR [DOWN]</title>
     <style>
         body {
             margin: 0;
+            overflow: hidden;
         }
 
         canvas {
-            width: 100%;
-            height: 100%
+            width: 100vw;
+            height: 100vh;
         }
     </style>
 </head>
@@ -18,13 +19,35 @@
 <script src="./three.js"></script>
 
 <script>
+    var UP = false;
+    var DOWN = false;
+    document.addEventListener('keydown',  function (e) {
+        if(e.which === 38){
+            UP = true;
+        }
+        if(e.which === 40) {
+            DOWN = true;
+        }
+    });
+
+    document.addEventListener('keyup',  function (e) {
+        if(e.which === 38){
+            UP = false;
+        }
+        if(e.which === 40) {
+            DOWN = false;
+        }
+    });
+
+
+
     var scene = new THREE.Scene();
 
     var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
     { // SETUP CAMERA
         camera.position.x = 3.9;
-        camera.position.y = 0;
-        camera.position.z = 24;
+        camera.position.y = 12;
+        camera.position.z = 20;
         camera.up = new THREE.Vector3(1, 0, 0);
     }
 
@@ -57,29 +80,35 @@
     rootCube.castShadow = true;
     rootCube.receiveShadow = true;
 
-    { // SETUP SUB CUBES AND ATTACHE TO ROOT CUBE
+
+    var ALL_SUB_CUBES = [];
+    { // SETUP SUB CUBES AND ATTACH TO ROOT CUBE
         var subCubes = [];
-        var buildSubCube = (attachmentPoint, edgeLength, differential, aggregator) => {
+        var buildSubCube = (attachmentPoint, edgeLength, differential, aggregator, originalOffset) => {
             var subGeo = new THREE.BoxGeometry(edgeLength, edgeLength, edgeLength);
             var subCube = new THREE.Mesh(subGeo, cubeMaterial);
+            subCube.ORIGINAL_OFFSET = originalOffset;
             subCube.castShadow = true;
             subCube.receiveShadow = true;
-            differential(subCube);
+            differential(subCube.position);
+            subCube.ORIGINAL_POSITION = new THREE.Vector3();
+            differential(subCube.ORIGINAL_POSITION);
             attachmentPoint.add(subCube);
+            ALL_SUB_CUBES.push(subCube);
             aggregator.push(subCube);
         };
 
         let subCubeWidth = CUBE_WIDTH / 3;
         let subCubeOffset = CUBE_WIDTH / 2 + 3 * subCubeWidth / 2;
 
-        buildSubCube(rootCube, subCubeWidth, sc => sc.position.x = subCubeOffset, subCubes);
-        buildSubCube(rootCube, subCubeWidth, sc => sc.position.x = -subCubeOffset, subCubes);
+        buildSubCube(rootCube, subCubeWidth, sc => sc.x = subCubeOffset, subCubes, subCubeOffset);
+        buildSubCube(rootCube, subCubeWidth, sc => sc.x = -subCubeOffset, subCubes, subCubeOffset);
 
-        buildSubCube(rootCube, subCubeWidth, sc => sc.position.y = subCubeOffset, subCubes);
-        buildSubCube(rootCube, subCubeWidth, sc => sc.position.y = -subCubeOffset, subCubes);
+        buildSubCube(rootCube, subCubeWidth, sc => sc.y = subCubeOffset, subCubes, subCubeOffset);
+        buildSubCube(rootCube, subCubeWidth, sc => sc.y = -subCubeOffset, subCubes, subCubeOffset);
 
-        buildSubCube(rootCube, subCubeWidth, sc => sc.position.z = subCubeOffset, subCubes);
-        buildSubCube(rootCube, subCubeWidth, sc => sc.position.z = -subCubeOffset, subCubes);
+        buildSubCube(rootCube, subCubeWidth, sc => sc.z = subCubeOffset, subCubes, subCubeOffset);
+        buildSubCube(rootCube, subCubeWidth, sc => sc.z = -subCubeOffset, subCubes, subCubeOffset);
 
         let lastCubeWidth = subCubeWidth;
         subCubeWidth = lastCubeWidth / 3;
@@ -87,27 +116,27 @@
 
         var subsubCubes = [];
         subCubes.map(sc => {
-            buildSubCube(sc, subCubeWidth, ssc => ssc.position.x = subCubeOffset, subsubCubes);
-            buildSubCube(sc, subCubeWidth, ssc => ssc.position.x = -subCubeOffset, subsubCubes);
+            buildSubCube(sc, subCubeWidth, ssc => ssc.x = subCubeOffset, subsubCubes, subCubeOffset);
+            buildSubCube(sc, subCubeWidth, ssc => ssc.x = -subCubeOffset, subsubCubes, subCubeOffset);
 
-            buildSubCube(sc, subCubeWidth, ssc => ssc.position.y = subCubeOffset, subsubCubes);
-            buildSubCube(sc, subCubeWidth, ssc => ssc.position.y = -subCubeOffset, subsubCubes);
+            buildSubCube(sc, subCubeWidth, ssc => ssc.y = subCubeOffset, subsubCubes, subCubeOffset);
+            buildSubCube(sc, subCubeWidth, ssc => ssc.y = -subCubeOffset, subsubCubes, subCubeOffset);
 
-            buildSubCube(sc, subCubeWidth, ssc => ssc.position.z = subCubeOffset, subsubCubes);
-            buildSubCube(sc, subCubeWidth, ssc => ssc.position.z = -subCubeOffset, subsubCubes);
+            buildSubCube(sc, subCubeWidth, ssc => ssc.z = subCubeOffset, subsubCubes, subCubeOffset);
+            buildSubCube(sc, subCubeWidth, ssc => ssc.z = -subCubeOffset, subsubCubes, subCubeOffset);
         });
         lastCubeWidth = subCubeWidth;
         subCubeWidth = lastCubeWidth / 3;
         subCubeOffset = lastCubeWidth / 2 + 3 * subCubeWidth / 2;
         subsubCubes.map(ssc => {
-            buildSubCube(ssc, subCubeWidth, sssc => sssc.position.x = subCubeOffset, []);
-            buildSubCube(ssc, subCubeWidth, sssc => sssc.position.x = -subCubeOffset, []);
+            buildSubCube(ssc, subCubeWidth, sssc => sssc.x = subCubeOffset, [], subCubeOffset);
+            buildSubCube(ssc, subCubeWidth, sssc => sssc.x = -subCubeOffset, [], subCubeOffset);
 
-            buildSubCube(ssc, subCubeWidth, sssc => sssc.position.y = subCubeOffset, []);
-            buildSubCube(ssc, subCubeWidth, sssc => sssc.position.y = -subCubeOffset, []);
+            buildSubCube(ssc, subCubeWidth, sssc => sssc.y = subCubeOffset, [], subCubeOffset);
+            buildSubCube(ssc, subCubeWidth, sssc => sssc.y = -subCubeOffset, [], subCubeOffset);
 
-            buildSubCube(ssc, subCubeWidth, sssc => sssc.position.z = subCubeOffset, []);
-            buildSubCube(ssc, subCubeWidth, sssc => sssc.position.z = -subCubeOffset, []);
+            buildSubCube(ssc, subCubeWidth, sssc => sssc.z = subCubeOffset, [], subCubeOffset);
+            buildSubCube(ssc, subCubeWidth, sssc => sssc.z = -subCubeOffset, [], subCubeOffset);
         })
     }
     scene.add(rootCube);
@@ -136,7 +165,7 @@
     }
 
     var particleLights = [];
-    {// LIGTHING
+    {// LIGHTING
         scene.add(new THREE.AmbientLight(0x020804));
 
         var hemiLight = new THREE.HemisphereLight(
@@ -174,30 +203,63 @@
 
     //sloopy quat
     var lQuat = new THREE.Quaternion();
-    lQuat.setFromAxisAngle(new THREE.Vector3(0, 1, 1), Math.PI / 8400).normalize();
+    lQuat.setFromAxisAngle(new THREE.Vector3(0, 1, 1), Math.PI / 1200).normalize();
+    camera.lookAt(rootCube.position);
 
     function animate() {
         requestAnimationFrame(animate);
 
-        var dynamicQuaternion = new THREE.Quaternion();
-        dynamicQuaternion.setFromAxisAngle(particleLights[0].position.clone().sub(rootCube.position), Math.PI / 1024).normalize();
+        // var dynamicQuaternion = new THREE.Quaternion();
+        // dynamicQuaternion.setFromAxisAngle(particleLights[0].position.clone().sub(rootCube.position), Math.PI / 1024).normalize();
 
-        var quaternion = new THREE.Quaternion();
-        quaternion.setFromAxisAngle(new THREE.Vector3(1, -1, 0), Math.PI / 512).normalize();
-        rootCube.applyQuaternion(dynamicQuaternion);
-        rootCube.applyQuaternion(quaternion);
-        rootCube.applyQuaternion(lQuat);
+        // var quaternion = new THREE.Quaternion();
+        // quaternion.setFromAxisAngle(new THREE.Vector3(1, -1, 0), Math.PI / 512).normalize();
+        // rootCube.applyQuaternion(dynamicQuaternion);
+        // rootCube.applyQuaternion(quaternion);
+        // rootCube.applyQuaternion(lQuat);
 
         particleLights.map((pl) => pl.position.applyQuaternion(lQuat));
 
-        var cQuat = new THREE.Quaternion();
-        cQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 300);
+        // var cQuat = new THREE.Quaternion();
+        // cQuat.setFromAxisAngle(new THREE.Vector3(1, 0, 0), Math.PI / 300);
 
-        camera.position.applyQuaternion(cQuat);
-        camera.lookAt(rootCube.position);
+        // camera.position.applyQuaternion(cQuat);
+        // camera.lookAt(rootCube.position);
+
+        if(UP ^ DOWN) {
+            // var scalarScalor = 1 + ((UP * .0001) - (DOWN * .0001));
+            //
+            // console.log(scalarScalor);
+            //
+            // var scaleFactor = new THREE.Vector3(scalarScalor, scalarScalor, scalarScalor);
+
+            ALL_SUB_CUBES.forEach(
+                subCube => {
+                    // TODO this doesn't really "reverse" properly
+                    subCube.applyMatrix(
+                        new THREE.Matrix4().compose(
+                            new THREE.Vector3(0, 0, 0), // position
+                            new THREE.Quaternion().setFromAxisAngle(
+                                (
+                                    UP
+                                        ? subCube.ORIGINAL_POSITION.clone()
+                                        : subCube.ORIGINAL_POSITION.clone().negate()
+                                ).normalize()
+                                ,
+                                .05
+                            ),
+                            // scaleFactor
+                            new THREE.Vector3(1, 1, 1)
+                        )
+                    );
+                }
+            );
+        }
 
 
         renderer.render(scene, camera);
+
+
     }
 
     animate();
