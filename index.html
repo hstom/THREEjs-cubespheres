@@ -23,37 +23,60 @@
     var DOWN = false;
     var LEFT = false;
     var RIGHT = false;
-    document.addEventListener('keydown',  function (e) {
-        if(e.which === 37){
-            LEFT = true;
-        }
-        if(e.which === 38){
-            UP = true;
-        }
-        if(e.which === 39){
-            RIGHT = true;
-        }
-        if(e.which === 40) {
-            DOWN = true;
-        }
+
+    var leftKeys = ["37", "65"];
+    var upKeys = ["38", "87"];
+    var rightKeys = ["39", "68"];
+    var downKeys = ["40", "83"];
+
+    var keyHandlerBlob = {};
+
+    [
+        [(val) => LEFT = val, leftKeys],
+        [(val) => UP = val, upKeys],
+        [(val) => RIGHT = val, rightKeys],
+        [(val) => DOWN = val, downKeys]
+    ]
+        .forEach(
+            ([stateVarUpdater, keyCodes]) => {
+                keyCodes.forEach(
+                    keyCode => {
+                        keyHandlerBlob[keyCode] = {
+                            state: false,
+                            updater: () => {
+                                stateVarUpdater(keyCodes.map(kc => keyHandlerBlob[kc].state).reduce((acc, val) => acc || val, false));
+                            }
+                        }
+                    }
+                )
+            }
+        );
+
+    document.addEventListener('keydown', function(e) {
+        Object.keys(keyHandlerBlob).some(
+            kc => {
+                if(""+e.which === kc) {
+                    keyHandlerBlob[kc].state = true;
+                    keyHandlerBlob[kc].updater();
+                    return true;
+                }
+                return false;
+            }
+        )
     });
 
-    document.addEventListener('keyup',  function (e) {
-        if(e.which === 37){
-            LEFT = false;
-        }
-        if(e.which === 38){
-            UP = false;
-        }
-        if(e.which === 39){
-            RIGHT = false;
-        }
-        if(e.which === 40) {
-            DOWN = false;
-        }
+    document.addEventListener('keyup', function(e) {
+        Object.keys(keyHandlerBlob).some(
+            kc => {
+                if(""+e.which === kc) {
+                    keyHandlerBlob[kc].state = false;
+                    keyHandlerBlob[kc].updater();
+                    return true;
+                }
+                return false;
+            }
+        )
     });
-
-
 
     var scene = new THREE.Scene();
 
