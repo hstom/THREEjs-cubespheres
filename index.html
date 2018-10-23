@@ -241,7 +241,7 @@
             // dynamicQuaternion.setFromAxisAngle(particleLights[0].position.clone().sub(rootCube.position), sign * Math.PI / 1024).normalize();
 
             var quaternion = new THREE.Quaternion();
-            quaternion.setFromAxisAngle(new THREE.Vector3(1, -1, 0), sign * Math.PI / 512).normalize();
+            quaternion.setFromAxisAngle(new THREE.Vector3(1, -1, 0), sign * .05).normalize();
             // rootCube.applyQuaternion(dynamicQuaternion);
             rootCube.applyQuaternion(quaternion);
             // rootCube.applyQuaternion(lQuat);
